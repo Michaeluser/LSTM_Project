@@ -1,5 +1,7 @@
 import datetime
 import os
+import matplotlib.pyplot as plt
+import sys
 
 from agents.agent import Agent, AgentConfig
 from loaders.pred_prices_loader_csv import PredPricesLoaderCSV2
@@ -13,7 +15,7 @@ def utc_datetime(year: int, month: int, day: int):
     return datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc)
 
 if __name__ == '__main__':
-    # AGENT_SYMBOLS = [
+    # AGENT_SYMBOLS = [                 #better to refer to them as features since symbols is harder to understand, maybe cryptocurrencies
     #     'BINANCE_SPOT_DOT_USDT',
     #     'BINANCE_SPOT_SOL_USDT',
     #     'BINANCE_SPOT_BNB_USDT',
@@ -79,10 +81,28 @@ if __name__ == '__main__':
         config=config,
         real_prices_provider=AGENT_REAL_DAILY_PRICES_PROVIDER,
         pred_prices_provider=AGENT_PRED_PRICES_PROVIDER,
+        symbols_amnt = len(AGENT_SYMBOLS) + len(AGENT_PRED_MODELS) * 3
     )
 
     for symbol in AGENT_SYMBOLS:
         print(symbol)
-        agent.train(interval=AGENT_TRAIN_INTERVAL, symbols=[symbol])
-        agent.test(interval=AGENT_TEST_INTERVAL, symbols=[symbol])
+        error_rtt_train, batch_rtt = agent.train(interval = AGENT_TRAIN_INTERVAL, symbols = [symbol])
+        error_rtt_test, freq_rate_test = agent.test(interval = AGENT_TEST_INTERVAL, symbols = [symbol])
 
+
+    
+    timeline_test = [ts * freq_rate_test for ts in range(len(error_rtt_test))]
+    timeline_train = [ts for ts in batch_rtt]
+
+    fig1 = plt.figure(figsize=(8, 5))
+    plt.plot(timeline_train, error_rtt_train)
+    plt.title('Training Loss')
+    plt.grid()
+    # fig1.show()  # not needed if you call plt.show() later
+
+    fig2 = plt.figure(figsize=(8, 5))
+    plt.plot(timeline_test, error_rtt_test, color='red')
+    plt.title('Test Loss')
+    plt.grid()
+
+    plt.show()

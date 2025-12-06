@@ -26,9 +26,9 @@ class DatasetSequential(Dataset):
 
     def __getitem__(self, idx):
         # sequence from idx → idx+seq_len
-        x_seq = self.state[idx : idx + self.seq_len]  # (seq_len, feature_dim)
+        x_seq = self.state[idx : idx + self.seq_len]  # (seq_len, feature_dim) and starting from index ending at index + sequence length
 
-        # target action = long/short at the last day in the sequence
+        # target action = long/short at the last day of the sequence
         last_idx = idx + self.seq_len
         y = self.target[last_idx]
 
